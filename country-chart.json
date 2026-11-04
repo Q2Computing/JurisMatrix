@@ -1,0 +1,42 @@
+[
+  {
+    "country": "Afghanistan",
+    "ns1": true,
+    "ns2": true,
+    "at1": true,
+    "np1": true,
+    "footnotes": "See Part 740"
+  },
+  {
+    "country": "Albania",
+    "ns1": false,
+    "ns2": true,
+    "at1": true,
+    "np1": true,
+    "footnotes": "-"
+  },
+  {
+    "country": "Algeria",
+    "ns1": false,
+    "ns2": true,
+    "at1": true,
+    "np1": true,
+    "footnotes": "Footnote 4"
+  },
+  {
+    "country": "Andorra",
+    "ns1": false,
+    "ns2": false,
+    "at1": false,
+    "np1": false,
+    "footnotes": "-"
+  },
+  {
+    "country": "Angola",
+    "ns1": false,
+    "ns2": true,
+    "at1": true,
+    "np1": true,
+    "footnotes": "-"
+  }
+]
