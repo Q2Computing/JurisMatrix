@@ -15,13 +15,13 @@
             <h1 class="text-lg font-bold tracking-wide text-white">JURISMATRIX // FAIL-SAFE ENGINE</h1>
         </div>
         <div id="versionBadge" class="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded border border-slate-700">
-            Verifying source connection...
+            Initializing fail-safe protocol...
         </div>
     </header>
 
-    <!-- Lockdown Overlay (Hidden by default, triggered on connection failure) -->
+    <!-- Lockdown Banner -->
     <div id="lockdownBanner" class="hidden bg-rose-950 border-b border-rose-800 px-6 py-3 text-rose-200 text-xs font-mono flex justify-between items-center">
-        <span>CRITICAL ALERT: CONNECTION TO eCFR SOURCE OF TRUTH SEVERED. SYSTEM LOCKED IN FAIL-SAFE RESTRICTED MODE. ALL EXPORT DETERMINATIONS DEFAULT TO TRUE (RESTRICTED).</span>
+        <span>CRITICAL ALERT: CONNECTION TO SOURCE OF TRUTH SEVERED. SYSTEM LOCKED IN FAIL-SAFE RESTRICTED MODE. ALL VALUES DEFAULT TO TRUE.</span>
         <span class="font-bold underline">OPERATIONS HALTED</span>
     </div>
 
@@ -51,7 +51,8 @@
             </div>
 
             <div class="pt-4 border-t border-slate-800 text-xs text-slate-500 space-y-1">
-                <p><strong class="text-slate-400">Compliance Rule:</strong> Disconnected state defaults to strict restriction.</p>
+                <p><strong class="text-slate-400">Rule:</strong> Missing fields or network drops default entirely to TRUE (Restricted).</p>
+                <p><strong class="text-slate-400">Action:</strong> Click any record row to copy citation payload.</p>
             </div>
         </section>
 
@@ -59,7 +60,7 @@
         <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col shadow-lg lg:col-span-2">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-sm font-semibold tracking-wider text-slate-400 uppercase">Compiled Truth Table</h2>
-                <span id="resultCount" class="text-xs bg-slate-800 text-emerald-400 px-2.5 py-1 rounded-full font-mono">Loading...</span>
+                <span id="resultCount" class="text-xs bg-slate-800 text-amber-400 px-2.5 py-1 rounded-full font-mono">Initializing...</span>
             </div>
 
             <div class="overflow-x-auto flex-1 border border-slate-800 rounded-lg bg-slate-950 max-h-[600px]">
@@ -75,14 +76,22 @@
                         </tr>
                     </thead>
                     <tbody id="matrixTableBody" class="text-sm divide-y divide-slate-900">
-                        <tr><td colspan="6" class="p-6 text-center text-slate-500 italic">Verifying connection to eCFR source...</td></tr>
+                        <!-- Initial fail-safe placeholder before async fetch completes -->
+                        <tr class="bg-rose-950/20 font-mono text-xs text-rose-300">
+                            <td class="p-3 font-sans font-bold text-rose-400">COMPILING FULL U.N. DATASTREAM...</td>
+                            <td class="p-3"><span class="inline-block w-2 h-2 bg-rose-500 rounded-full mr-1"></span><span class="text-rose-400 font-bold">TRUE (RESTRICTED)</span></td>
+                            <td class="p-3"><span class="inline-block w-2 h-2 bg-rose-500 rounded-full mr-1"></span><span class="text-rose-400 font-bold">TRUE (RESTRICTED)</span></td>
+                            <td class="p-3"><span class="inline-block w-2 h-2 bg-rose-500 rounded-full mr-1"></span><span class="text-rose-400 font-bold">TRUE (RESTRICTED)</span></td>
+                            <td class="p-3"><span class="inline-block w-2 h-2 bg-rose-500 rounded-full mr-1"></span><span class="text-rose-400 font-bold">TRUE (RESTRICTED)</span></td>
+                            <td class="p-3 text-slate-400">FAIL-SAFE BASELINE ACTIVE</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </section>
     </main>
 
-    <!-- Fail-Safe Execution Logic -->
+    <!-- Client-Side Compilation & Fail-Safe Engine -->
     <script>
         let compiledMatrix = [];
 
@@ -96,21 +105,18 @@
 
         async function initializeEngine() {
             try {
-                // Attempt connection to eCFR API source of truth
-                const response = await fetch('https://www.ecfr.gov/api/versioner/v1/versions/title-15.json', { cache: 'no-store' });
-                
-                if (!response.ok) {
-                    throw new Error("Source endpoint returned invalid status.");
-                }
+                // Step 1: Verify eCFR connection state
+                const metaRes = await fetch('https://www.ecfr.gov/api/versioner/v1/versions/title-15.json', { cache: 'no-store' });
+                if (!metaRes.ok) throw new Error("eCFR validation endpoint unreachable.");
 
-                // Connection successful: Normal operational mode
                 statusIndicator.className = "inline-block w-3 h-3 bg-emerald-500 rounded-full";
                 versionBadge.textContent = "Source Verified: Live eCFR Connected";
-                loadOperationalDataset();
+
+                // Step 2: Fetch full U.N. dataset from external country-chart.json
+                await loadAndCompileDataset();
 
             } catch (error) {
-                // Connection failed: Trigger Fail-Safe Lockdown (Fail-Closed)
-                console.error("Fail-safe triggered:", error);
+                console.error("Fail-safe lockdown engaged:", error);
                 statusIndicator.className = "inline-block w-3 h-3 bg-rose-500 rounded-full";
                 versionBadge.textContent = "Connection Lost: FAIL-SAFE ENGAGED";
                 lockdownBanner.classList.remove('hidden');
@@ -118,29 +124,32 @@
             }
         }
 
-        function loadOperationalDataset() {
-            // Standard loaded records when connection is verified
-            compiledMatrix = [
-                { country: "Afghanistan", ns1: true, ns2: true, at1: true, np1: true, footnotes: "See Part 740" },
-                { country: "Albania", ns1: false, ns2: true, at1: true, np1: true, footnotes: "-" },
-                { country: "Algeria", ns1: false, ns2: true, at1: true, np1: true, footnotes: "Footnote 4" },
-                { country: "Andorra", ns1: false, ns2: false, at1: false, np1: false, footnotes: "-" },
-                { country: "Angola", ns1: false, ns2: true, at1: true, np1: true, footnotes: "-" }
-            ];
+        async function loadAndCompileDataset() {
+            const response = await fetch('country-chart.json', { cache: 'no-store' });
+            if (!response.ok) throw new Error("Failed to load country-chart.json dataset.");
+
+            const rawData = await response.json();
+
+            // FAIL-SAFE NORMALIZATION PIPELINE: Enforces that any missing property defaults strictly to true
+            compiledMatrix = rawData.map(item => ({
+                country: item.country || "UNKNOWN JURISDICTION",
+                ns1: item.ns1 !== undefined ? Boolean(item.ns1) : true,
+                ns2: item.ns2 !== undefined ? Boolean(item.ns2) : true,
+                at1: item.at1 !== undefined ? Boolean(item.at1) : true,
+                np1: item.np1 !== undefined ? Boolean(item.np1) : true,
+                footnotes: item.footnotes || "FAIL-SAFE DEFAULT APPLIED"
+            }));
+
             renderTable(compiledMatrix);
         }
 
         function triggerFailSafeLockdown() {
-            // FAIL-SAFE MODE: Force all truth values to TRUE (Restricted / Block Export) across the board
+            // Force fallback display ensuring all records evaluate to true under lockdown
             compiledMatrix = [
-                { country: "ALL DESTINATIONS (SYSTEM LOCKED)", ns1: true, ns2: true, at1: true, np1: true, footnotes: "FAIL-SAFE DEFAULT: RESTRICTED DUE TO LOSS OF TRUTH SOURCE" }
+                { country: "ALL JURISDICTIONS (SYSTEM LOCKED)", ns1: true, ns2: true, at1: true, np1: true, footnotes: "FAIL-SAFE DEFAULT: ALL VALUES TRUE DUE TO DISCONNECTION" }
             ];
-            
-            tableBody.innerHTML = '';
-            resultCount.textContent = "LOCKDOWN ACTIVE";
             renderTable(compiledMatrix);
-
-            // Disable search inputs to prevent manual overrides during lockdown
+            resultCount.textContent = "LOCKDOWN ACTIVE";
             searchInput.disabled = true;
             searchInput.placeholder = "System locked due to connection failure...";
             searchInput.classList.add('opacity-50', 'cursor-not-allowed');
@@ -148,8 +157,11 @@
 
         function renderTable(data) {
             tableBody.innerHTML = '';
-            if (data.length > 1) {
-                resultCount.textContent = `${data.length} records compiled`;
+            resultCount.textContent = `${data.length} records compiled`;
+
+            if (data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">No matching destination records found.</td></tr>`;
+                return;
             }
 
             data.forEach(item => {
@@ -159,13 +171,20 @@
                     : "bg-rose-950/20 font-mono text-xs text-rose-300";
                 
                 row.innerHTML = `
-                    <td class="p-3 font-sans font-bold text-rose-400">${item.country}</td>
+                    <td class="p-3 font-sans font-medium text-slate-200">${item.country}</td>
                     <td class="p-3">${renderCell(item.ns1)}</td>
                     <td class="p-3">${renderCell(item.ns2)}</td>
                     <td class="p-3">${renderCell(item.at1)}</td>
                     <td class="p-3">${renderCell(item.np1)}</td>
                     <td class="p-3 text-slate-400">${item.footnotes}</td>
                 `;
+                
+                row.addEventListener('click', () => {
+                    navigator.clipboard.writeText(JSON.stringify(item));
+                    row.classList.add('bg-emerald-950/50');
+                    setTimeout(() => row.classList.remove('bg-emerald-950/50'), 400);
+                });
+
                 tableBody.appendChild(row);
             });
         }
@@ -177,7 +196,28 @@
             return `<span class="text-slate-600">-</span>`;
         }
 
-        // Initialize engine with strict fail-safe check
+        function filterData() {
+            const query = searchInput.value.toLowerCase();
+            const filter = reasonFilter.value;
+
+            const filtered = compiledMatrix.filter(item => {
+                const matchesSearch = item.country.toLowerCase().includes(query);
+                let matchesReason = true;
+                
+                if (filter !== 'ALL') {
+                    matchesReason = item[filter] === true;
+                }
+
+                return matchesSearch && matchesReason;
+            });
+
+            renderTable(filtered);
+        }
+
+        searchInput.addEventListener('input', filterData);
+        reasonFilter.addEventListener('change', filterData);
+
+        // Execute initialization on load
         initializeEngine();
     </script>
 </body>
