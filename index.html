@@ -311,7 +311,7 @@
             tableBody.innerHTML = '';
             resultCount.textContent = `${data.length} records compiled`;
 
-            data.forEach(item => {
+data.forEach(item => {
                 const row = document.createElement('tr');
                 row.className = "hover:bg-slate-900/85 transition-colors cursor-pointer font-mono text-xs";
                 
@@ -325,7 +325,7 @@
                 `;
                 
                 row.addEventListener('click', () => {
-                    navigator.clipboard.writeText(JSON.stringify(item));
+                    navigator.clipboard.writeText(JSON.stringify(item, null, 2));
                     row.classList.add('bg-emerald-950/50');
                     setTimeout(() => row.classList.remove('bg-emerald-950/50'), 400);
                 });
