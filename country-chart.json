@@ -5,38 +5,38 @@
     "ns2": true,
     "at1": true,
     "np1": true,
-    "footnotes": "See Part 740"
+    "footnotes": "FAIL-SAFE BASELINE: RESTRICTED"
   },
   {
     "country": "Albania",
-    "ns1": false,
+    "ns1": true,
     "ns2": true,
     "at1": true,
     "np1": true,
-    "footnotes": "-"
+    "footnotes": "FAIL-SAFE BASELINE: RESTRICTED"
   },
   {
     "country": "Algeria",
-    "ns1": false,
+    "ns1": true,
     "ns2": true,
     "at1": true,
     "np1": true,
-    "footnotes": "Footnote 4"
+    "footnotes": "FAIL-SAFE BASELINE: RESTRICTED"
   },
   {
     "country": "Andorra",
-    "ns1": false,
-    "ns2": false,
-    "at1": false,
-    "np1": false,
-    "footnotes": "-"
-  },
-  {
-    "country": "Angola",
-    "ns1": false,
+    "ns1": true,
     "ns2": true,
     "at1": true,
     "np1": true,
-    "footnotes": "-"
+    "footnotes": "FAIL-SAFE BASELINE: RESTRICTED"
+  },
+  {
+    "country": "Angola",
+    "ns1": true,
+    "ns2": true,
+    "at1": true,
+    "np1": true,
+    "footnotes": "FAIL-SAFE BASELINE: RESTRICTED"
   }
 ]
